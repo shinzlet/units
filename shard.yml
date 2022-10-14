@@ -1,0 +1,9 @@
+name: ph-units
+version: 0.1.0
+
+authors:
+  - shinzlet <sethhinz@me.com>
+
+crystal: 1.5.0
+
+license: MIT
