@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe Ph::Units do
+describe Units do
   # TODO: Write tests
 
   it "works" do

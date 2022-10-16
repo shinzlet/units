@@ -1,2 +1,2 @@
 require "spec"
-require "../src/ph-units"
+require "../src/units"
