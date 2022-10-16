@@ -22,6 +22,10 @@ module Units
 		{1e+21, "zetta", "Z"},
 		{1e+24, "yotta", "Y"},
 	]
+	private TOLERANCE_SQUARED = 0.1
+
+	struct Wrap(T)
+	end
 
 	# Seconds, kg, mol, cd, K, A, m
 	# time (T), length (L), mass (M), electric current (I), absolute temperature (Θ), amount of substance (N) and luminous intensity (J).
@@ -131,14 +135,33 @@ module Units
 			end
 		end
 
-		def to(&block : -> self) : X
-			converter = with UnitConsts.new yield
+		def to(&block : UnitConsts -> self) : X
+			converter = yield UnitConsts.new
 			@value / converter.value
 		end
 
 		def self.from(value : X, &block : -> Unit(_, M, L, J, O, I, N, T))\
 														forall X, M, L, J, O, I, N, T
 			Unit(X, M, L, J, O, I, N, T).new(value)
+		end
+
+		def sqrt
+			self ** Wrap(0.5)
+		end
+
+		def **(exp : Wrap(Exp).class) forall Exp
+			{% begin %}
+			new_value = @value ** Exp
+			Unit(
+				typeof(new_value),
+				{{M * Exp}},
+				{{L * Exp}},
+				{{J * Exp}},
+				{{O * Exp}},
+				{{I * Exp}},
+				{{N * Exp}},
+				{{T * Exp}}).new(new_value)
+			{% end %}
 		end
 
 		def *(other : Unit(X2, M2, L2, J2, O2, I2, N2, T2))\
@@ -156,9 +179,56 @@ module Units
 				{{T + T2}}).new(new_value)
 			{% end %}
 		end
+		
+		def /(other : Unit(X2, M2, L2, J2, O2, I2, N2, T2))\
+				        forall X2, M2, L2, J2, O2, I2, N2, T2
+			new_value = @value / other.value
+			{% begin %}
+			Unit(
+				typeof(new_value),
+				{{M - M2}},
+				{{L - L2}},
+				{{J - J2}},
+				{{O - O2}},
+				{{I - I2}},
+				{{N - N2}},
+				{{T - T2}}).new(new_value)
+			{% end %}
+		end
 
-		def +(other : Unit(X2, M, L, J, O, I, N, T)) forall X2
-			@value + other.@value
+		def +(other : Unit(X2, M2, L2, J2, O2, I2, N2, T2))\
+				        forall X2, M2, L2, J2, O2, I2, N2, T2
+			new_value = @value + other.@value
+			{% begin %}
+				{% if (M2 - M) ** 2 > TOLERANCE_SQUARED ||
+		 					(L2 - L) ** 2 > TOLERANCE_SQUARED ||
+							(J2 - J) ** 2 > TOLERANCE_SQUARED ||
+							(O2 - O) ** 2 > TOLERANCE_SQUARED ||
+							(I2 - I) ** 2 > TOLERANCE_SQUARED ||
+							(N2 - N) ** 2 > TOLERANCE_SQUARED ||
+							(T2 - T) ** 2 > TOLERANCE_SQUARED %}
+					{% raise "bad" %}
+				{% end %}
+			{% end %}
+
+			Unit(typeof(new_value), M, L, J, O, I, N, T).new(new_value)
+		end
+
+		def -(other : Unit(X2, M2, L2, J2, O2, I2, N2, T2))\
+				        forall X2, M2, L2, J2, O2, I2, N2, T2
+			new_value = @value - other.@value
+			{% begin %}
+				{% if M2 != M ||
+		 					L2 != L ||
+							J2 != J ||
+							O2 != O ||
+							I2 != I ||
+							N2 != N ||
+							T2 != T %}
+					{% raise "bad" %}
+				{% end %}
+			{% end %}
+			@value - other.@value
 		end
 	end
 
@@ -182,12 +252,13 @@ include Units
 # Shouldn't compile
 # puts Length.new(2)
 # puts foo(Unit(Int32, 0, 1, 0, 0, 0, 0, 0).new(3))
-
-l = Unit.from_feet(3)
-t = Unit.from_minutes(10)
-prod = l * t
-puts l
-puts t
-puts prod
-puts(Unit.from(3) { l * t })
-puts(prod.to { yards * minutes })
+{% begin %}
+	u1 = Unit.from_yards(1) ** Wrap({{1/3}})
+	u2 = Unit.from_meters(1) ** Wrap({{2/3}})
+	u3 = u1 * u2
+	puts u3
+	puts u3 + Unit.from_meters(1)
+	puts u3 - Unit.from_meters(1)
+{% end %}
+# puts Unit.from_meters(2) ** Wrap(2)
+# 3 ft^2 * (1yd/3ft)**2 = 3ft^2 / 9
