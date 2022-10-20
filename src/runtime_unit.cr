@@ -58,6 +58,37 @@ module Units
       io << @dimension
     end
 
+    # other + self
+    def left_add(other)
+      if @dimension.scalar?
+        other + @value
+      else
+        raise UnitError.new(@dimension, Dimension.new)
+      end
+    end
+
+    def left_add(other : RuntimeUnit)
+      if @dimension != other.dimension
+        raise UnitError.new(self.dimension, other.dimension)
+      end
+
+      RuntimeUnit.new(other.value + @value, @dimension)
+    end
+
+    # other - self
+    def left_subtract(other)
+      (-self).left_add(other)
+    end
+
+    # other * self
+    def left_multiply(other)
+      RuntimeUnit.new(other * @value, @dimension)
+    end
+
+    def left_multiply(other : RuntimeUnit)
+      RuntimeUnit.new(other.value * @value, @dimension + other.dimension)
+    end
+
     # Removes the unit wrapper or raises - you can't add a number to
     # any non-scalar quantity so if this returns it has to not be a unit
     # anymore
