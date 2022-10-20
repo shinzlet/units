@@ -54,7 +54,7 @@ module Units
       {% end %}
     end
 
-    def invert
+    def inverse
       Dimension.new(
         -@mass,
         -@length,

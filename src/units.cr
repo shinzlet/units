@@ -15,7 +15,6 @@ module Units
 
   {% begin %}
     {% for entry in Units::Registry::ALL %}
-      {% value = entry[:value] %}
       {% for name in entry[:names] %}
         def from_{{ name.id }}(value) : self
           RuntimeUnit.from_{{ name.id }}(value)

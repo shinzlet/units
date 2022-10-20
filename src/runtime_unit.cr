@@ -4,16 +4,19 @@ require "./dimension"
 require "./formatting"
 require "./si_info"
 require "./unit_error"
+require "./algebraic_unit"
 
 module Units
-  class RuntimeUnit(T)
+  class RuntimeUnit(X)
     extend Building
+
+    include AlgebraicUnit(X)
     include Casting
 
-    protected getter value : T
+    protected getter value : X
     getter dimension : Dimension
 
-    protected def initialize(@value : T, @dimension : Dimension)
+    protected def initialize(@value : X, @dimension : Dimension)
     end
 
     {% begin %}
@@ -41,15 +44,15 @@ module Units
         raise UnitError.new(@dimension, measure.dimension)
       end
 
-      RuntimeUnit.new(@value / measure.value, @dimension)
+      @value / measure.value
     end
 
-    def invert : self
-      RuntimeUnit.new(1 / @value, @dimension.invert)
+    def inverse : self
+      RuntimeUnit.new(1 / @value, @dimension.inverse)
     end
 
     def - : self
-      RuntimeUnit.new(-@value, @dimension.invert)
+      RuntimeUnit.new(-@value, @dimension)
     end
 
     def to_s(io : IO) : Nil
@@ -59,64 +62,32 @@ module Units
     end
 
     # other + self
-    def left_add(other)
+    def left_add(lhs)
       if @dimension.scalar?
-        other + @value
+        lhs + @value
       else
         raise UnitError.new(@dimension, Dimension.new)
       end
     end
 
-    def left_add(other : RuntimeUnit)
-      if @dimension != other.dimension
-        raise UnitError.new(self.dimension, other.dimension)
+    def left_add(lhs : AlgebraicUnit) : AlgebraicUnit
+      if @dimension != lhs.dimension
+        raise UnitError.new(self.dimension, lhs.dimension)
       end
 
-      RuntimeUnit.new(other.value + @value, @dimension)
+      RuntimeUnit.new(lhs.value + @value, @dimension)
     end
 
-    # other - self
-    def left_subtract(other)
-      (-self).left_add(other)
+    # lhs * self
+    def left_multiply(lhs)
+      RuntimeUnit.new(lhs * @value, @dimension)
     end
 
-    # other * self
-    def left_multiply(other)
-      RuntimeUnit.new(other * @value, @dimension)
+    def left_multiply(lhs : AlgebraicUnit) : AlgebraicUnit
+      RuntimeUnit.new(lhs.value * @value, @dimension + lhs.dimension)
     end
 
-    def left_multiply(other : RuntimeUnit)
-      RuntimeUnit.new(other.value * @value, @dimension + other.dimension)
-    end
-
-    # Removes the unit wrapper or raises - you can't add a number to
-    # any non-scalar quantity so if this returns it has to not be a unit
-    # anymore
-    def +(other)
-      if @dimension.scalar?
-        @value + other
-      else
-        raise UnitError.new(@dimension, Dimension.new)
-      end
-    end
-
-    def -(other)
-      if @dimension.scalar?
-        @value - other
-      else
-        raise UnitError.new(@dimension, Dimension.new)
-      end
-    end
-    
-    def *(other)
-      RuntimeUnit.new(@value * other, @dimension)
-    end
-
-    def /(other)
-      RuntimeUnit.new(@value / other, @dimension)
-    end
-
-    def +(other : RuntimeUnit)
+    def +(other : AlgebraicUnit) : AlgebraicUnit
       if @dimension != other.dimension
         raise UnitError.new(self.dimension, other.dimension)
       end
@@ -124,7 +95,7 @@ module Units
       RuntimeUnit.new(@value + other.value, @dimension)
     end
     
-    def -(other : RuntimeUnit)
+    def -(other : AlgebraicUnit) : AlgebraicUnit
       if @dimension != other.dimension
         raise UnitError.new(self.dimension, other.dimension)
       end
@@ -132,12 +103,20 @@ module Units
       RuntimeUnit.new(@value - other.value, @dimension)
     end
 
-    def *(other : RuntimeUnit)
+    def *(other : AlgebraicUnit) : AlgebraicUnit
       RuntimeUnit.new(@value * other.value, @dimension + other.dimension)
     end
 
-    def /(other : RuntimeUnit)
+    def /(other : AlgebraicUnit) : AlgebraicUnit
       RuntimeUnit.new(@value / other.value, @dimension - other.dimension)
+    end
+
+    def *(other) : AlgebraicUnit
+      RuntimeUnit.new(@value * other, @dimension)
+    end
+
+    def /(other) : AlgebraicUnit
+      RuntimeUnit.new(@value / other, @dimension)
     end
   end
 end
