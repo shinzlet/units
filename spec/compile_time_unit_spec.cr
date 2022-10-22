@@ -1,7 +1,7 @@
 require "./spec_helper.cr"
 
-LENGTH = {1, 0, 0, 0, 0, 0, 0}
-TIME = {0, 1, 0, 0, 0, 0, 0}
+TIME = {1, 0, 0, 0, 0, 0, 0}
+LENGTH = {0, 1, 0, 0, 0, 0, 0}
 
 describe CompileTimeUnit do
   it "should" do
@@ -13,6 +13,9 @@ describe CompileTimeUnit do
     puts (a * 2).inspect
     puts (a / 2).inspect
     puts ((a / a) + 3).inspect
+    puts (Units.from_feet(3) + a).inspect
+    puts (Units.from_feet(3) + a)
+    puts (CompileTimeUnit.from_meters(3) + CompileTimeUnit.from_hours(2))
     {% end %}
   end
 end

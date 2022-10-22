@@ -1,3 +1,4 @@
+require "./formatting"
 require "./si_info"
 
 module Units
@@ -40,7 +41,9 @@ module Units
             if on_first
               on_first = false
             else
-              io << '·'
+              # io << '·'
+              # io << '×'
+              io << ' '
             end
 
             if exp == 1
