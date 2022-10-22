@@ -1,4 +1,5 @@
 require "./runtime_unit"
+require "./compile_time_unit"
 require "./library"
 require "./patches/*"
 
