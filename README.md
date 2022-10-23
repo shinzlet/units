@@ -2,8 +2,7 @@
 
 A library for computing with physical quantities that enforces the rules of
 dimensional analysis (at compile time whenever possible, with decay to runtime
-checking for indeterminite units). For example, `Units.from_meters(2)
-+ Units.from_seconds(3)` will not even compile:
+checking for indeterminate units). For example, `Units.from_meters(2) + Units.from_seconds(3)` will not even compile:
 
 ```text
 In src/compile_time_unit.cr:103:23
