@@ -7,7 +7,7 @@ require "./unit_error"
 require "./algebraic_unit"
 
 module Units
-  class RuntimeUnit(X)
+  struct RuntimeUnit(X)
     extend Building
 
     include AlgebraicUnit(X)

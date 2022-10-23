@@ -1,3 +1,4 @@
+require "./algebraic_unit"
 require "./registry"
 
 module Units::Casting

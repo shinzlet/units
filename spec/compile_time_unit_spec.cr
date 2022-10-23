@@ -15,7 +15,7 @@ describe CompileTimeUnit do
     puts ((a / a) + 3).inspect
     puts (Units.from_feet(3) + a).inspect
     puts (Units.from_feet(3) + a)
-    puts (CompileTimeUnit.from_meters(3) + CompileTimeUnit.from_hours(2))
+    puts (CompileTimeUnit.from_meters(3) + RuntimeUnit.from_yards(2))
     {% end %}
   end
 end

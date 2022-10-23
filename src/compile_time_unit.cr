@@ -1,14 +1,16 @@
 require "./algebraic_unit"
 require "./building"
+require "./casting"
 require "./si_info"
 
 module Units
-  class CompileTimeUnit(X, M, L, J, O, I, N, T)
+  struct CompileTimeUnit(X, M, L, J, O, I, N, T)
     private TOLERANCE = 1e-3
     private ERRFMT = "./compile_time_formatter.cr"
     extend Building
 
     include AlgebraicUnit(X)
+    include Casting
 
     protected getter value : X
 
@@ -19,10 +21,19 @@ module Units
     {% begin %}
       {% idx = 0 %}
       {% for triple in SI_INFO %}
+        {% dimension = {0, 0, 0, 0, 0, 0, 0} %}
+        {% dimension[idx] = 1 %}
+
         def self.from_{{ triple[1].id }}(value)
-          {% dimension = {0, 0, 0, 0, 0, 0, 0} %}
-          {% dimension[idx] = 1 %}
           CompileTimeUnit(typeof(value), {{ dimension.splat }}).new(value)
+        end
+
+        def to_{{ triple[1].id }}
+          \{% begin %}
+             dummy_target = uninitialized CompileTimeUnit(X, {{ dimension.splat }})
+             CompileTimeUnit.assert_same_units!(self, dummy_target)
+             @value
+          \{% end %}
         end
 
         {% idx += 1 %}
@@ -32,6 +43,11 @@ module Units
     def self.from(value, measure : CompileTimeUnit(_, M, L, J, O, I, N, T)) forall M, L, J, O, I, N, T
       new_value = value / measure.value
       CompileTimeUnit(typeof(new_value), M, L, J, O, I, N, T).new(new_value)
+    end
+
+    def to(measure : self)
+      CompileTimeUnit.assert_same_units!(self, measure)
+      @value / measure.value
     end
 
     def dimension : Dimension
@@ -63,7 +79,7 @@ module Units
       {% end %}
     end
 
-    protected def self.assert_same_unit!(u1 : CompileTimeUnit(_, M1, L1, J1, O1, I1, N1, T1), u2 : CompileTimeUnit(_, M2, L2, J2, O2, I2, N2, T2)) forall M1, L1, J1, O1, I1, N1, T1, M2, L2, J2, O2, I2, N2, T2 
+    protected def self.assert_same_units!(u1 : CompileTimeUnit(_, M1, L1, J1, O1, I1, N1, T1), u2 : CompileTimeUnit(_, M2, L2, J2, O2, I2, N2, T2)) forall M1, L1, J1, O1, I1, N1, T1, M2, L2, J2, O2, I2, N2, T2 
       {% begin %}
         {% pairs = [{M1, M2}, {L1, L2}, {J1, J2}, {O1, O2}, {I1, I2}, {N1, N2}, {T1, T2}] %}
         {% tolerance_sq = TOLERANCE ** 2 %}
@@ -84,7 +100,7 @@ module Units
     end
 
     def +(other : CompileTimeUnit(X2, M2, L2, J2, O2, I2, N2, T2)) : CompileTimeUnit forall X2, M2, L2, J2, O2, I2, N2, T2
-      CompileTimeUnit.assert_same_unit!(self, other)
+      CompileTimeUnit.assert_same_units!(self, other)
 
       {% begin %}
         new_value = @value + other.value
@@ -96,7 +112,7 @@ module Units
     end
 
     def -(other : CompileTimeUnit(X2, M2, L2, J2, O2, I2, N2, T2)) : CompileTimeUnit forall X2, M2, L2, J2, O2, I2, N2, T2
-      CompileTimeUnit.assert_same_unit!(self, other)
+      CompileTimeUnit.assert_same_units!(self, other)
 
       {% begin %}
         new_value = @value - other.value
@@ -129,6 +145,22 @@ module Units
           {{ new_units.splat }}
         ).new(new_value)
       {% end %}
+    end
+
+    def +(other : AlgebraicUnit)
+      other.left_add(self)
+    end
+
+    def -(other : AlgebraicUnit)
+      other.left_subtract(self)
+    end
+
+    def *(other : AlgebraicUnit)
+      other.left_multiply(self)
+    end
+
+    def /(other : AlgebraicUnit)
+      other.inverse.left_multiply(self)
     end
 
     def +(other)
@@ -166,7 +198,7 @@ module Units
     end
 
     def left_add(lhs : CompileTimeUnit(X2, M2, L2, J2, O2, I2, N2, T2)) : CompileTimeUnit forall X2, M2, L2, J2, O2, I2, N2, T2
-      CompileTimeUnit.assert_same_unit!(self, lhs)
+      CompileTimeUnit.assert_same_units!(self, lhs)
 
       {% begin %}
         new_value = lhs.value + @value
