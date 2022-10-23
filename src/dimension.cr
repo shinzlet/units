@@ -12,6 +12,8 @@ module Units
     time : Float32 = 0
 
   struct Dimension
+    TOLERANCE = 1e-3
+
     {% begin %}
       {% for triple in SI_INFO %}
         {% name = triple[0] %}
@@ -110,6 +112,16 @@ module Units
         @current / value,
         @amount / value,
         @time / value)
+    end
+
+    def =~(other : self)
+      (@mass - other.mass).abs < TOLERANCE \
+      && (@length - other.length).abs < TOLERANCE \
+      && (@luminant_intensity - other.luminant_intensity).abs < TOLERANCE \
+      && (@temperature - other.temperature).abs < TOLERANCE \
+      && (@current - other.current).abs < TOLERANCE \
+      && (@amount - other.amount).abs < TOLERANCE \
+      && (@time - other.time).abs < TOLERANCE
     end
   end
 end

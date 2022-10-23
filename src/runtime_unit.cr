@@ -16,7 +16,7 @@ module Units
     protected getter value : X
     getter dimension : Dimension
 
-    protected def initialize(@value : X, @dimension : Dimension)
+    def initialize(@value : X, @dimension : Dimension)
     end
 
     {% begin %}
@@ -26,7 +26,7 @@ module Units
         end
 
         def to_{{triple[1].id}}
-          if @dimension == Dimension.{{triple[0].id}}
+          if @dimension =~ Dimension.{{triple[0].id}}
             @value
           else
             raise "Cannot cast quantity #{self} to a {{triple[0].gsub(/_/, " ").id}} - its units are incompatible"
@@ -40,7 +40,7 @@ module Units
     end
 
     def to(measure : self)
-      if @dimension != measure.dimension
+      unless @dimension =~ measure.dimension
         raise UnitError.new(@dimension, measure.dimension)
       end
 
@@ -55,12 +55,6 @@ module Units
       RuntimeUnit.new(-@value, @dimension)
     end
 
-    def to_s(io : IO) : Nil
-      io << @value
-      io << " "
-      io << @dimension
-    end
-
     # other + self
     def left_add(lhs)
       if @dimension.scalar?
@@ -70,8 +64,8 @@ module Units
       end
     end
 
-    def left_add(lhs : AlgebraicUnit) : AlgebraicUnit
-      if @dimension != lhs.dimension
+    def left_add(lhs : AlgebraicUnit) : RuntimeUnit
+      unless @dimension =~ lhs.dimension
         raise UnitError.new(self.dimension, lhs.dimension)
       end
 
@@ -79,44 +73,48 @@ module Units
     end
 
     # lhs * self
-    def left_multiply(lhs)
+    def left_multiply(lhs) : RuntimeUnit
       RuntimeUnit.new(lhs * @value, @dimension)
     end
 
-    def left_multiply(lhs : AlgebraicUnit) : AlgebraicUnit
+    def left_multiply(lhs : AlgebraicUnit) : RuntimeUnit
       RuntimeUnit.new(lhs.value * @value, @dimension + lhs.dimension)
     end
 
-    def +(other : AlgebraicUnit) : AlgebraicUnit
-      if @dimension != other.dimension
+    def +(other : AlgebraicUnit) : RuntimeUnit
+      unless @dimension =~ other.dimension
         raise UnitError.new(self.dimension, other.dimension)
       end
 
       RuntimeUnit.new(@value + other.value, @dimension)
     end
     
-    def -(other : AlgebraicUnit) : AlgebraicUnit
-      if @dimension != other.dimension
+    def -(other : AlgebraicUnit) : RuntimeUnit
+      unless @dimension =~ other.dimension
         raise UnitError.new(self.dimension, other.dimension)
       end
 
       RuntimeUnit.new(@value - other.value, @dimension)
     end
 
-    def *(other : AlgebraicUnit) : AlgebraicUnit
+    def *(other : AlgebraicUnit) : RuntimeUnit
       RuntimeUnit.new(@value * other.value, @dimension + other.dimension)
     end
 
-    def /(other : AlgebraicUnit) : AlgebraicUnit
+    def /(other : AlgebraicUnit) : RuntimeUnit
       RuntimeUnit.new(@value / other.value, @dimension - other.dimension)
     end
 
-    def *(other) : AlgebraicUnit
+    def *(other) : RuntimeUnit
       RuntimeUnit.new(@value * other, @dimension)
     end
 
-    def /(other) : AlgebraicUnit
+    def /(other) : RuntimeUnit
       RuntimeUnit.new(@value / other, @dimension)
+    end
+
+    def **(other) : RuntimeUnit
+      RuntimeUnit.new(@value ** other, @dimension * other)
     end
   end
 end

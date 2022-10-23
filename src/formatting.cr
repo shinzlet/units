@@ -31,7 +31,7 @@ class Units::Formatting
     if use_superscript
       output.tr(SUPERSCRIPT_MAP_FROM, SUPERSCRIPT_MAP_TO)
     else
-      output
+      '^' + output
     end
   end
 end

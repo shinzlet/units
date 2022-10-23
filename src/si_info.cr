@@ -1,5 +1,5 @@
 module Units
-  private SI_INFO = {
+  SI_INFO = {
     {:mass, :kilograms, :kg},
     {:length, :meters, :m},
     {:luminant_intensity, :candela, :cd},

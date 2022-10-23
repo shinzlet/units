@@ -20,6 +20,7 @@ module Units::AlgebraicUnit(X)
 
   abstract def *(other) : AlgebraicUnit
   abstract def /(other) : AlgebraicUnit
+  abstract def **(other) : AlgebraicUnit
 
   # Manipulation from the left (e.g. `5 + self` becomes `self.left_add(5)`)
 
@@ -35,7 +36,7 @@ module Units::AlgebraicUnit(X)
       raise UnitError.new(self.dimension, Dimension.new)
     end
   end
-  
+
   def -(other)
     if dimension.scalar?
       value - other
@@ -48,7 +49,29 @@ module Units::AlgebraicUnit(X)
     (-self).left_add(lhs)
   end
 
+  def sq
+    self ** 2
+  end
+
+  def sqrt
+    self ** (1 / 2)
+  end
+
+  def cb
+    self ** 3
+  end
+
+  def cbrt
+    self ** (1 / 3)
+  end
+
   # Note: left_divide is not a well defined concept, so the
   # user is left to compose #left_multiply and #inverse if they
   # want that behaviour e.g. `3 / self == (self.inverse).left_multiply(3)`
+
+  def to_s(io : IO) : Nil
+    io << value
+    io << " "
+    io << dimension
+  end
 end
