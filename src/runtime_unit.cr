@@ -1,10 +1,11 @@
-require "./casting"
+require "./algebraic_unit"
 require "./building"
+require "./casting"
 require "./dimension"
 require "./formatting"
+require "./runtime_unit"
 require "./si_info"
 require "./unit_error"
-require "./algebraic_unit"
 
 module Units
   struct RuntimeUnit(X)
@@ -22,14 +23,14 @@ module Units
     {% begin %}
       {% for triple in SI_INFO %}
         def self.from_{{triple[1].id}}(value)
-          new(value, Dimension.{{triple[0].id}})
+          new(value, Dimension.{{ triple[0].id }})
         end
 
         def to_{{triple[1].id}}
-          if @dimension =~ Dimension.{{triple[0].id}}
+          if @dimension =~ Dimension.{{ triple[0].id }}
             @value
           else
-            raise "Cannot cast quantity #{self} to a {{triple[0].gsub(/_/, " ").id}} - its units are incompatible"
+            raise UnitError.new(self.dimension, Dimension.{{ triple[0].id }})
           end
         end
       {% end %}
@@ -39,7 +40,7 @@ module Units
       self.new(value * measure.value, measure.dimension)
     end
 
-    def to(measure : self)
+    def to(measure : AlgebraicUnit)
       unless @dimension =~ measure.dimension
         raise UnitError.new(@dimension, measure.dimension)
       end

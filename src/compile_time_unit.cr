@@ -1,9 +1,12 @@
 require "./algebraic_unit"
 require "./building"
 require "./casting"
+require "./dimension"
 require "./fix"
+require "./formatting"
 require "./runtime_unit"
 require "./si_info"
+require "./unit_error"
 
 struct Units::CompileTimeUnit(X, M, L, J, O, I, N, T)
   private ERRFMT = "./compile_time_formatter.cr"
@@ -40,13 +43,21 @@ struct Units::CompileTimeUnit(X, M, L, J, O, I, N, T)
   {% end %}
 
   def self.from(value, measure : CompileTimeUnit(_, M, L, J, O, I, N, T)) forall M, L, J, O, I, N, T
-    new_value = value / measure.value
+    new_value = value * measure.value
     CompileTimeUnit(typeof(new_value), M, L, J, O, I, N, T).new(new_value)
   end
 
-  def to(measure : self)
+  def to(measure : CompileTimeUnit)
     CompileTimeUnit.assert_same_units!(self, measure)
     @value / measure.value
+  end
+
+  def to(measure : AlgebraicUnit)
+    if dimension =~ measure.dimension
+      @value / measure.value
+    else
+      raise UnitError.new(self.dimension, measure.dimension)
+    end
   end
 
   def dimension : Dimension

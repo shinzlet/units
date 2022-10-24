@@ -29,6 +29,8 @@ describe CompileTimeUnit do
     puts a.inverse.sq
     puts a.sq.cbrt
     puts 12.as_in.to_ft
+    puts 12.as_in.to { 1.as_in ** 1 }
+    puts CompileTimeUnit.from(10, 1.as_in)
     {% end %}
   end
 end

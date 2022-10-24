@@ -9,7 +9,7 @@ module Units::Casting
   abstract def to_amperes
   abstract def to_moles
   abstract def to_seconds
-  abstract def to(measure : self)
+  abstract def to(measure : AlgebraicUnit)
 
   private macro populate_from(registry, reciever)
     \{% begin %}
