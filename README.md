@@ -16,7 +16,7 @@ For more details about the unit checking system, see [Automatic Unit Checking.](
 
 ## Usage
 - [Building and Casting Units](#building-and-casting-units)
-- [Automatic Unit Checking.](#automatic-unit-checking)
+- [Automatic Unit Checking](#automatic-unit-checking)
 
 ### Building and Casting Units
 ```crystal
@@ -89,7 +89,7 @@ a + a_sq # => Units::UnitError will be raised at runtime :(
 This can be worked around using a const generic wrapper:
 ```crystal
 a = Units.from_feet(2) # => CompileTimeUnit(Float64, ...)
-a_sq = a ** Units::Fix(2) # => RuntimeUnit(Float64)
+a_sq = a ** Units::Fix(2) # => CompileTimeUnit(Float64, ...)
 a + a_sq # => Error: Refusing to compile because `m` and `m²` are not compatible units
 ```
 
