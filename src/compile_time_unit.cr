@@ -93,8 +93,11 @@ struct Units::CompileTimeUnit(X, M, L, J, O, I, N, T)
     {% begin %}
       {% pairs = [{M1, M2}, {L1, L2}, {J1, J2}, {O1, O2}, {I1, I2}, {N1, N2}, {T1, T2}] %}
       {% tolerance_sq = Dimension::TOLERANCE ** 2 %}
+      {% ascii = flag?(:units_force_ascii) %}
       {% if pairs.any? { |p| (p[0] - p[1]) ** 2 > tolerance_sq } %}
-        {% raise "Refusing to compile because `#{run(ERRFMT, M1, L1, J1, O1, I1, N1, T1)}` and `#{run(ERRFMT, M2, L2, J2, O2, I2, N2, T2)}` are not compatible units" %}
+        {% u1_str = run(ERRFMT, ascii, M1, L1, J1, O1, I1, N1, T1) %}
+        {% u2_str = run(ERRFMT, ascii, M2, L2, J2, O2, I2, N2, T2) %}
+        {% raise "Refusing to compile because `#{u1_str}` and `#{u2_str}` are not compatible units" %}
       {% end %}
     {% end %}
   end

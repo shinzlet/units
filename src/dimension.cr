@@ -29,9 +29,9 @@ module Units
       {% end %}
     end
 
-    def to_s(io : IO, scalar_message = "(scalar)")
+    def to_s(io : IO, force_ascii : Bool? = nil)
       if scalar?
-        io << scalar_message
+        io << "(scalar)"
         return
       end
 
@@ -52,7 +52,7 @@ module Units
               io << {{triple[2].id.stringify}}
             else
               io << {{triple[2].id.stringify}}
-              io << Formatting.format_exponent(exp)
+              io << Formatting.format_exponent(exp, force_ascii)
             end
           end
         {% end %}

@@ -1,7 +1,6 @@
 class Units::Formatting
-  private SUPERSCRIPT_MAP_FROM =   "+-.0123456789E"
-  private SUPERSCRIPT_MAP_TO = "⁺⁻⋅⁰¹²³⁴⁵⁶⁷⁸⁹ᴱ"
-  class_property use_superscript = true
+  private SUPERSCRIPT_MAP_FROM = "+-.0123456789E"
+  private SUPERSCRIPT_MAP_TO =   "⁺⁻⋅⁰¹²³⁴⁵⁶⁷⁸⁹ᴱ"
 
   private def self.to_readable_string(exponent) : String
     rounded = exponent.round
@@ -25,13 +24,19 @@ class Units::Formatting
     end
   end
 
-  def self.format_exponent(exponent) : String
+  def self.format_exponent(exponent, force_ascii : Bool? = nil) : String
     output = to_readable_string(exponent)
+    
+    if force_ascii.nil?
+      {% begin %}
+      force_ascii = {{ flag?(:units_force_ascii) }}
+      {% end %}
+    end
 
-    if use_superscript
-      output.tr(SUPERSCRIPT_MAP_FROM, SUPERSCRIPT_MAP_TO)
-    else
+    if force_ascii
       '^' + output
+    else
+      output.tr(SUPERSCRIPT_MAP_FROM, SUPERSCRIPT_MAP_TO)
     end
   end
 end

@@ -31,6 +31,7 @@ describe CompileTimeUnit do
     puts 12.as_in.to_ft
     puts 12.as_in.to { 1.as_in ** 1 }
     puts CompileTimeUnit.from(10, 1.as_in)
+    puts 12.as_in ** 2 + 3.as_seconds
     {% end %}
   end
 end
